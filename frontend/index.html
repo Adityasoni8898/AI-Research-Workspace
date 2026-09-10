@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1A17;
+    --panel:#232019;
+    --panel-raised:#2A261F;
+    --ink:#EFE9DA;
+    --ink-dim:#A79C87;
+    --ink-faint:#6E6653;
+    --line:#3A362C;
+    --blue:#6988cb;
+    --blue-bright:#7cc3fa;
+    --moss:#6E8058;
+    --rust:#B0512F;
+    --radius:6px;
+    --radius-lg:9px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ color-scheme: dark; }
+  body{
+    margin:0; height:100vh; overflow:hidden;
+    display:flex; background:var(--bg); color:var(--ink);
+    font-family:'Inter', -apple-system, sans-serif;
+    font-size:14px; line-height:1.5;
+  }
+  h1,h2,h3,h4{ font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:-0.01em; margin:0; }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--blue); color:#1B1A17; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:20px; border:2px solid var(--panel); }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--ink-faint); }
+  *{ scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
+
+  button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--blue-bright); outline-offset:2px;
+  }
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{
+    width:264px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column; padding:20px 16px;
+  }
+  .wordmark{
+    display:flex; align-items:baseline; gap:8px; margin-bottom:4px;
+  }
+  .wordmark svg{ flex-shrink:0; }
+  .wordmark h1{ font-size:1.2rem; color:var(--ink); letter-spacing:0.2px; }
+  .wordmark-sub{ font-size:0.72rem; color:var(--ink-faint); margin:0 0 18px 30px; }
+
+  .btn{
+    border:1px solid transparent; border-radius:var(--radius);
+    padding:9px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;
+    transition:background 0.15s, border-color 0.15s, opacity 0.15s;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .btn:disabled{ opacity:0.55; cursor:default; }
+  .btn-primary{ background:var(--blue); color:#0E1B24; }
+  .btn-primary:hover:not(:disabled){ background:var(--blue-bright); }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover:not(:disabled){ border-color:var(--ink-dim); }
+  .btn-subtle{ background:var(--panel-raised); color:var(--ink-dim); border-color:var(--line); }
+  .btn-subtle:hover:not(:disabled){ color:var(--ink); }
+  .btn-danger{ background:transparent; border-color:var(--rust); color:var(--rust); }
+  .btn-danger:hover:not(:disabled){ background:var(--rust); color:var(--ink); }
+  .btn-block{ width:100%; }
+  .btn-sm{ padding:6px 10px; font-size:0.76rem; }
+
+  #new-project-btn{ margin-bottom:18px; }
+
+  #project-list{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin:0 -4px; padding:0 4px; }
+
+  .project-item{
+    position:relative; padding:10px 12px 10px 16px; border-radius:var(--radius);
+    cursor:pointer; background:transparent; border:1px solid transparent;
+    transition:background 0.12s;
+  }
+  .project-item::before{
+    content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:2px;
+    background:var(--stripe, var(--line));
+  }
+  .project-item:hover{ background:var(--panel-raised); }
+  .project-item.active{ background:var(--panel-raised); border-color:var(--line); }
+  .project-item.active::before{ background:var(--blue); }
+  .project-name{ font-size:0.86rem; font-weight:600; color:var(--ink); }
+  .project-meta{ font-size:0.72rem; color:var(--ink-faint); margin-top:2px; }
+
+  .sidebar-empty{ color:var(--ink-faint); font-size:0.8rem; padding:16px 8px; text-align:center; line-height:1.6; }
+
+  /* ---------- Main ---------- */
+  #main{ flex:1; display:flex; flex-direction:column; min-width:0; }
+
+  #header{
+    padding:16px 28px; background:var(--bg);
+    border-bottom:1px solid var(--line);
+    position:relative;
+    display:flex; justify-content:space-between; align-items:baseline; gap:16px;
+  }
+  #header::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:1px;
+    background:linear-gradient(90deg, var(--blue) 0%, transparent 38%);
+    opacity:0.6;
+  }
+  #project-title{ font-size:1.3rem; color:var(--ink); }
+  #project-subtitle{ font-size:0.78rem; color:var(--ink-faint); margin-top:3px; max-width:60ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chip{
+    flex-shrink:0; background:var(--panel-raised); color:var(--ink-dim); border:1px solid var(--line);
+    padding:5px 12px; border-radius:20px; font-size:0.76rem; font-weight:500; white-space:nowrap;
+  }
+
+  #workspace{ flex:1; display:flex; gap:20px; padding:20px 28px; overflow:hidden; }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+    padding:18px; display:flex; flex-direction:column; min-height:0;
+  }
+  .panel h4{ font-size:0.82rem; text-transform:none; color:var(--ink); margin-bottom:8px; }
+  .panel-label{ font-size:0.72rem; color:var(--ink-faint); margin-bottom:10px; }
+
+  #info-panel{ width:300px; flex-shrink:0; overflow-y:auto; gap:18px; }
+  .info-block + .info-block{ padding-top:16px; border-top:1px solid var(--line); }
+  #project-context-text{ font-size:0.83rem; color:var(--ink-dim); line-height:1.6; white-space:pre-wrap; }
+
+  /* Dropzone */
+  .dropzone {
+    display: block; /* Add this line */
+    border: 1.5px dashed var(--line); 
+    border-radius: var(--radius); 
+    padding: 18px 12px;
+    text-align: center; 
+    cursor: pointer; 
+    transition: border-color 0.15s, background 0.15s;
+    }
+  .dropzone:hover, .dropzone.dragover{ border-color:var(--blue); background:rgba(62,124,177,0.10); }
+  .dropzone-text{ font-size:0.78rem; color:var(--ink-dim); }
+  .dropzone-sub{ font-size:0.7rem; color:var(--ink-faint); margin-top:3px; }
+  .dropzone input[type=file]{ display:none; }
+  .selected-file{ font-size:0.76rem; color:var(--blue-bright); margin-top:10px; word-break:break-all; }
+
+  #chat-threads{ display:flex; flex-direction:column; gap:5px; margin-bottom:10px; max-height:140px; overflow-y:auto; }
+  .thread-btn{
+    text-align:left; background:transparent; border:1px solid transparent; color:var(--ink-dim);
+    padding:7px 10px; border-radius:var(--radius); font-size:0.78rem; cursor:pointer;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .thread-btn:hover{ background:var(--panel-raised); }
+  .thread-btn.active{ background:var(--panel-raised); color:var(--ink); border-color:var(--line); font-weight:600; }
+
+  /* Chat panel */
+  #chat-panel{ flex:1; min-width:0; }
+  #messages{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; margin-bottom:14px; padding-right:4px; }
+
+  .msg-row{ display:flex; }
+  .msg-row.user{ justify-content:flex-end; }
+  .msg{
+    padding:10px 14px; border-radius:10px; max-width:74%; line-height:1.55; font-size:0.87rem;
+    white-space:pre-wrap; word-wrap:break-word;
+  }
+  .msg.user{ background:var(--blue); color:#0E1B24; border-bottom-right-radius:3px; }
+  .msg.assistant{ background:var(--panel-raised); color:var(--ink); border:1px solid var(--line); border-bottom-left-radius:3px; }
+  .msg.error{ background:rgba(176,81,47,0.12); color:#E2A48D; border:1px solid var(--rust); }
+
+  .msg p{ margin:0 0 8px; }
+  .msg p:last-child{ margin-bottom:0; }
+  .msg ul, .msg ol{ margin:2px 0 8px; padding-left:20px; }
+  .msg ul:last-child, .msg ol:last-child{ margin-bottom:0; }
+  .msg li{ margin-bottom:4px; }
+  .msg li:last-child{ margin-bottom:0; }
+  .msg strong{ font-weight:700; }
+  .msg .md-heading{ font-weight:600; margin:0 0 6px; }
+  .msg code{ background:rgba(255,255,255,0.09); padding:1px 5px; border-radius:4px; font-size:0.88em; font-family:ui-monospace, monospace; }
+  .msg.user code{ background:rgba(0,0,0,0.14); }
+
+  .typing-dots{ display:inline-flex; gap:4px; padding:4px 2px; }
+  .typing-dots span{
+    width:6px; height:6px; border-radius:50%; background:var(--ink-faint);
+    animation:blink 1.2s infinite ease-in-out;
+  }
+  .typing-dots span:nth-child(2){ animation-delay:0.2s; }
+  .typing-dots span:nth-child(3){ animation-delay:0.4s; }
+  @keyframes blink{ 0%,80%,100%{ opacity:0.25; } 40%{ opacity:1; } }
+
+  .chat-empty{ margin:auto; text-align:center; color:var(--ink-faint); font-size:0.85rem; max-width:32ch; }
+  .chat-empty h3{ color:var(--ink-dim); font-size:1rem; margin-bottom:6px; }
+
+  .no-project{ margin:auto; text-align:center; color:var(--ink-faint); }
+  .no-project h3{ color:var(--ink-dim); margin-bottom:6px; }
+
+  .input-row{ display:flex; gap:10px; align-items:flex-end; }
+  #user-input{
+    flex:1; resize:none; background:var(--panel-raised); color:var(--ink);
+    border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px;
+    font-family:inherit; font-size:0.86rem; max-height:120px; line-height:1.4;
+  }
+  #user-input::placeholder{ color:var(--ink-faint); }
+  #user-input:focus{ border-color:var(--blue); outline:none; }
+
+  /* ---------- Modals ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,9,7,0.72);
+    display:flex; justify-content:center; align-items:center; z-index:1000; padding:20px;
+  }
+  .modal{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg);
+    padding:26px; width:520px; max-width:100%; max-height:88vh; overflow-y:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.45);
+  }
+  .modal h3{ font-size:1.1rem; margin-bottom:4px; }
+  .modal-sub{ font-size:0.78rem; color:var(--ink-faint); margin-bottom:18px; }
+  .field-label{ font-size:0.76rem; font-weight:600; color:var(--ink-dim); margin:14px 0 6px; display:block; }
+  .field{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--panel-raised); color:var(--ink); font-family:inherit; font-size:0.85rem;
+  }
+  .field:focus{ outline:none; border-color:var(--blue); }
+  textarea.field{ resize:vertical; }
+
+  .modal-loading{ text-align:center; padding:20px 0 6px; }
+  .spinner{
+    border:3px solid var(--line); border-top:3px solid var(--blue);
+    border-radius:50%; width:32px; height:32px; margin:0 auto;
+    animation:spin 0.85s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .modal-loading p{ margin-top:12px; color:var(--ink-dim); font-size:0.82rem; }
+
+  .modal-actions{ display:flex; gap:10px; margin-top:22px; }
+  .modal-actions .btn{ flex:1; }
+
+  /* Doc manager */
+  .doc-item{
+    display:flex; align-items:center; gap:12px; padding:11px 12px;
+    background:var(--panel-raised); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:8px;
+  }
+  .doc-item-title { 
+    font-size: 0.88rem; 
+    font-weight: 500; 
+    color: var(--ink); 
+    flex: 1; 
+    word-break: break-word; /* Allows long scientific names to wrap */
+    padding-right: 12px;
+    line-height: 1.4;
+  }
+  .doc-item-badge{ font-size:0.68rem; background:var(--bg); border:1px solid var(--line); padding:3px 8px; border-radius:10px; color:var(--ink-faint); flex-shrink:0; }
+  .doc-list-empty{ color:var(--ink-faint); font-size:0.82rem; text-align:center; padding:26px 0; }
+  .doc-list-loading{ color:var(--ink-faint); font-size:0.82rem; text-align:center; padding:26px 0; }
+
+  /* Toasts */
+  #toast-stack{
+    position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:8px; z-index:2000;
+  }
+  .toast{
+    background:var(--panel-raised); border:1px solid var(--line); border-left:3px solid var(--blue);
+    color:var(--ink); padding:11px 16px; border-radius:var(--radius); font-size:0.82rem;
+    box-shadow:0 8px 24px rgba(0,0,0,0.35); max-width:320px; animation:toast-in 0.18s ease-out;
+  }
+  .toast.error{ border-left-color:var(--rust); }
+  .toast.success{ border-left-color:var(--moss); }
+
+  .thread-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius);
+}
+.thread-btn {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-dim);
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.thread-btn:hover { background: var(--panel-raised); }
+.thread-btn.active { background: var(--panel-raised); color: var(--ink); border-color: var(--line); font-weight: 600; }
+
+.thread-edit-input {
+  width: 100%;
+  background: var(--panel-raised);
+  border: 1px solid var(--blue);
+  color: var(--ink);
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+}
+.thread-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.thread-item:hover .thread-actions, .thread-item.active .thread-actions {
+  opacity: 1;
+}
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+.icon-btn:hover { color: var(--ink); background: rgba(255,255,255,0.06); }
+
+#mode-tabs {
+    display: flex; 
+    width: 100%; /* Take up the full container width */
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .tab-btn {
+    flex: 1; /* Forces all tabs to stretch evenly across the width */
+    text-align: center; /* Centers the text inside the wider tabs */
+    background: transparent; 
+    border: 1px solid transparent; 
+    border-bottom: none;
+    color: var(--ink-dim); 
+    padding: 14px 18px; /* Taller touch targets */
+    font-size: 0.95rem; /* Larger, more readable font */
+    font-weight: 500;
+    cursor: pointer; 
+    border-radius: var(--radius) var(--radius) 0 0;
+    margin-bottom: -1px; 
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--ink); background: var(--panel-raised); }
+  .tab-btn.active {
+    background: var(--panel); color: var(--blue-bright);
+    border-color: var(--line); border-bottom-color: var(--panel);
+  }
+
+  /* ---------- Mode Views ---------- */
+  .mode-view { display: none; flex: 1; min-height: 0; overflow: hidden; }
+  .mode-view.active { display: flex; gap: 20px; padding: 20px 28px; }
+  .full-panel { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; overflow-y: auto; }
+
+  /* ---------- Evidence Map Table ---------- */
+  .evidence-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.85rem; }
+  .evidence-table th, .evidence-table td { padding: 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .evidence-table th { background: var(--panel-raised); font-weight: 600; color: var(--ink); }
+  .badge-consensus { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .consensus-strong { background: rgba(110, 128, 88, 0.2); color: #9AB27A; }
+  .consensus-contested { background: rgba(176, 81, 47, 0.2); color: #E2A48D; }
+
+  /* ---------- Flashcards ---------- */
+  .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+  .flashcard { 
+    background: var(--panel-raised); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; min-height: 160px; cursor: pointer; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    transition: transform 0.2s;
+  }
+  .flashcard:hover { border-color: var(--blue); }
+  .flashcard-inner { width: 100%; font-size: 0.9rem; line-height: 1.5; }
+  .flashcard .back { display: none; }
+  .flashcard.is-flipped .front { display: none; }
+  .flashcard.is-flipped .back { display: flex; flex-direction: column; width: 100%; }
+  
+  .flashcard-content { max-height: 220px; overflow-y: auto; margin-bottom: 12px; padding-right: 4px; }
+  .flashcard-hint { font-size: 0.7rem; color: var(--ink-faint); margin-top: auto; }
+
+  @keyframes toast-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 860px){
+    #info-panel{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <div class="wordmark">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M4 18c0-6 3-11 9-11 3.5 0 5 2 5 4.5S16.5 16 13 16c-1.8 0-3-1-3-2.5S11 11 12.5 11" stroke="#3E7CB1" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="16.5" cy="6.5" r="1.2" fill="#3E7CB1"/>
+      </svg>
+      <h1>Research Workspace</h1>
+    </div>
+    <p class="wordmark-sub">Research, sourced from your papers</p>
+
+    <button class="btn btn-primary btn-block" id="new-project-btn" type="button" onclick="showNewProjectModal()">+ New project</button>
+
+    <div id="project-list"></div>
+  </div>
+
+  <div id="main">
+    <div id="header">
+      <div>
+        <h3 id="project-title">Select or create a project</h3>
+        <div id="project-subtitle"></div>
+      </div>
+      <span class="chip" id="paper-badge">No project selected</span>
+    </div>
+
+    <!-- Tabs -->
+    <div id="mode-tabs">
+      <button class="tab-btn active" onclick="switchMode('ask')">Ask</button>
+      <button class="tab-btn" onclick="switchMode('research')">Research</button>
+      <button class="tab-btn" onclick="switchMode('evidence')">Evidence Map</button>
+    </div>
+
+    <div id="workspace">
+      
+      <!-- MODE: ASK (Chat) -->
+      <div id="mode-ask" class="mode-view active">
+        <div class="panel" id="info-panel" style="width:260px;">
+          <div class="info-block">
+            <h4>Context</h4>
+            <p id="project-context-text">Create a project to get started.</p>
+          </div>
+          <div class="info-block">
+            <h4>Chat threads</h4>
+            <div id="chat-threads"></div>
+            <button class="btn btn-subtle btn-block btn-sm" type="button" onclick="createNewChat()">+ New chat</button>
+          </div>
+        </div>
+        <div class="panel" id="chat-panel">
+          <div id="messages"></div>
+          <div class="input-row">
+            <textarea id="user-input" rows="1" placeholder="Ask a question about your project's papers..."></textarea>
+            <button class="btn btn-primary" type="button" id="send-btn" onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE: RESEARCH -->
+      <div id="mode-research" class="mode-view">
+        <div class="panel" style="width: 320px; flex-shrink: 0;">
+          <h4>Upload PDF</h4>
+          <label class="dropzone" id="dropzone" for="pdf-file" style="display:block; margin: 12px 0;">
+            <div class="dropzone-text">Drop a PDF here or click to browse</div>
+            <div class="dropzone-sub">Indexed into this project's source library</div>
+            <input type="file" id="pdf-file" accept=".pdf">
+          </label>
+          <div class="selected-file" id="selected-file" style="display:none;"></div>
+          <button class="btn btn-primary btn-block" type="button" id="upload-btn" onclick="uploadPDF()">Upload PDF</button>
+
+          <hr style="border:0; border-top:1px solid var(--line); margin: 24px 0;">
+          
+          <h4>Manage Library</h4>
+          <p class="panel-label" id="source-status-label" style="display:none;"></p>
+          <button class="btn btn-subtle btn-block" type="button" onclick="openDocManager()">
+            <span id="manage-sources-label">Manage sources</span>
+          </button>
+        </div>
+
+        <div class="panel" style="flex: 1;">
+          <h4>Search OpenAlex</h4>
+          <p class="panel-label">Find and import new papers explicitly to your RAG library.</p>
+          <div class="input-row" style="margin-top: 8px;">
+            <input type="text" id="openalex-search" class="field" style="flex:2;" placeholder="e.g. Quantum tunelling">
+            <input type="number" id="openalex-max" class="field" style="flex:0.5;" placeholder="Max" value="20">
+            <input type="number" id="openalex-year" class="field" style="flex:0.5;" placeholder="Year">
+            <button class="btn btn-primary" onclick="searchOpenAlex()">Search & Import</button>
+          </div>
+          <div id="research-results" style="margin-top: 20px; color: var(--ink-dim); font-size: 0.85rem;"></div>
+        </div>
+        
+      </div>
+
+      <!-- MODE: EVIDENCE MAP -->
+      <div id="mode-evidence" class="mode-view">
+        <div class="full-panel">
+          <div style="max-width: 600px;">
+            <h4>Generate Evidence Map</h4>
+            <p class="panel-label">Extract supporting and conflicting claims from your library regarding a specific taxon or feature.</p>
+            <div class="input-row" style="margin-top: 12px;">
+              <input type="text" id="evidence-topic" class="field" style="flex:1;" placeholder="e.g. Impact of microplastics on marine life">
+              <button class="btn btn-primary" id="btn-evidence" onclick="generateEvidence()">Generate Map</button>
+            </div>
+          </div>
+          <div id="evidence-output" style="margin-top: 24px; flex: 1;">
+             <div class="chat-empty">Enter a topic above to generate a consensus matrix.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- New Project Modal -->
+  <div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h3>Create a research project</h3>
+      <p class="modal-sub">We'll pull relevant papers from OpenAlex based on your context and build a source library automatically.</p>
+
+      <label class="field-label" for="modal-proj-name">Project name</label>
+      <input class="field" type="text" id="modal-proj-name" placeholder="e.g. Spinosaurus ecology and eating habits">
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label class="field-label" for="modal-proj-max">Max papers</label>
+          <input class="field" type="number" id="modal-proj-max" value="20" min="1" max="100">
+        </div>
+        <div style="flex:1;">
+          <label class="field-label" for="modal-proj-year">From Year (Optional)</label>
+          <input class="field" type="number" id="modal-proj-year" placeholder="All time">
+        </div>
+      </div>
+
+      <label class="field-label" for="modal-proj-context">Context &amp; research goals</label>
+      <textarea class="field" id="modal-proj-context" rows="4" placeholder="Describe what you want to research..."></textarea>
+
+      <div id="modal-loading" class="modal-loading" style="display:none;">
+        <div class="spinner"></div>
+        <p>Creating your project…</p>
+      </div>
+      <div id="modal-actions" class="modal-actions">
+        <button class="btn btn-primary" type="button" onclick="submitNewProject()">Create project</button>
+        <button class="btn btn-ghost" type="button" onclick="hideNewProjectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Manager Modal -->
+  <!-- Document Manager Modal -->
+  <div id="doc-modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal" style="width: 860px; max-width: 95vw;"> <!-- Updated Width Here -->
+      <h3>Manage sources</h3>
+      <p class="modal-sub">Papers currently indexed in this project's library.</p>
+      <div id="doc-list-container"></div>
+      <div class="modal-actions" style="margin-top:18px;">
+        <button class="btn btn-ghost" type="button" style="flex:none; padding:8px 18px;" onclick="closeDocManager()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-stack"></div>
+
+<script>
+  const API = "http://localhost:8000/api";
+  const STRIPES = ["#3E7CB1", "#6E8058", "#B0512F", "#6E8AA6", "#9A7BAE"];
+
+  let currentProject = null;
+  let currentChatId = null;
+  let projectsCache = [];
+  let selectedFile = null;
+  let pollTimer = null;
+
+  // ---------- Toasts ----------
+  function toast(message, kind = "info") {
+    const stack = document.getElementById("toast-stack");
+    const el = document.createElement("div");
+    el.className = `toast ${kind}`;
+    el.textContent = message;
+    stack.appendChild(el);
+    setTimeout(() => {
+      el.style.opacity = "0";
+      el.style.transition = "opacity 0.2s";
+      setTimeout(() => el.remove(), 200);
+    }, 4200);
+  }
+
+  async function safeFetch(url, options) {
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch (err) {
+      console.error("Network error calling", url, err);
+      toast("Couldn't reach the server. Is the backend running on localhost:8000?", "error");
+      throw err;
+    }
+    if (!res.ok) {
+      let detail = res.statusText;
+      try { detail = (await res.json()).detail || detail; } catch (_) {}
+      console.error("Request failed", url, res.status, detail);
+      toast(`Request failed: ${detail}`, "error");
+      throw new Error(detail);
+    }
+    return res;
+  }
+
+  // ---------- Projects ----------
+  async function loadProjects() {
+    try {
+      const res = await safeFetch(`${API}/projects`);
+      projectsCache = await res.json();
+    } catch (_) {
+      return;
+    }
+    renderProjectList();
+  }
+
+  // ---------- Mode Switching ----------
+  function switchMode(modeId) {
+    // Update tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    // Update views
+    document.querySelectorAll('.mode-view').forEach(view => view.classList.remove('active'));
+    document.getElementById(`mode-${modeId}`).classList.add('active');
+  }
+
+  // ---------- Research Mode: OpenAlex Search ----------
+  async function searchOpenAlex() {
+    if (!currentProject) { toast("Select a project first.", "error"); return; }
+    const query = document.getElementById("openalex-search").value.trim();
+    if (!query) return;
+
+    const out = document.getElementById("research-results");
+    out.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span> Searching and importing...`;
+
+    try {
+      const res = await safeFetch(`${API}/projects/${currentProject.id}/research/search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      out.innerHTML = `<span style="color:var(--moss)">✔ Imported ${data.added} new papers to the library.</span>`;
+      selectProject(currentProject.id); // Refresh counts
+    } catch (err) {
+      out.innerHTML = `<span style="color:var(--rust)">Search failed.</span>`;
+    }
+  }
+
+  // ---------- Evidence Map Rendering ----------
+  async function generateEvidence() {
+    if (!currentProject) return;
+    const topic = document.getElementById("evidence-topic").value.trim();
+    if (!topic) return;
+
+    const btn = document.getElementById("btn-evidence");
+    const out = document.getElementById("evidence-output");
+    btn.disabled = true;
+    out.innerHTML = `<div class="chat-empty"><span class="typing-dots"><span></span><span></span><span></span></span><br>Analyzing library for claims...</div>`;
+
+    try {
+      const res = await safeFetch(`${API}/projects/${currentProject.id}/evidence-map`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic }),
+      });
+      const data = await res.json();
+      
+      let html = `<table class="evidence-table">
+        <thead>
+          <tr>
+            <th>Hypothesis / Claim</th>
+            <th>Supporting Evidence</th>
+            <th>Conflicting Evidence</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      
+      data.claims.forEach(c => {
+        let statusClass = c.consensus.toLowerCase().includes("strong") ? "consensus-strong" : 
+                          c.consensus.toLowerCase().includes("contested") ? "consensus-contested" : "";
+        
+        html += `<tr>
+          <td><strong>${escapeHtml(c.claim)}</strong></td>
+          <td><ul style="margin:0; padding-left:16px">${c.supporting_evidence.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul></td>
+          <td><ul style="margin:0; padding-left:16px">${c.conflicting_evidence.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul></td>
+          <td><span class="badge-consensus ${statusClass}">${escapeHtml(c.consensus)}</span></td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      out.innerHTML = html;
+    } catch (err) {
+      out.innerHTML = `<div class="chat-empty" style="color:var(--rust)">Failed to generate evidence map.</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Study Mode Rendering ----------
+  async function generateStudy(mode) {
+    if (!currentProject) return;
+    const out = document.getElementById("study-output");
+    out.innerHTML = `<div class="chat-empty"><span class="typing-dots"><span></span><span></span><span></span></span><br>Generating ${mode}...</div>`;
+
+    try {
+      const res = await safeFetch(`${API}/projects/${currentProject.id}/study/${mode}`);
+      const data = await res.json();
+
+      if (mode === "flashcards") {
+        let html = `<div class="flashcard-grid">`;
+        data.flashcards.forEach(f => {
+          html += `
+          <div class="flashcard" onclick="this.querySelector('.front').style.display='none'; this.querySelector('.back').style.display='block';">
+            <div class="flashcard-inner front"><strong>${escapeHtml(f.front)}</strong><div class="flashcard-hint">Click to flip</div></div>
+            <div class="flashcard-inner back" style="display:none;">${escapeHtml(f.back)}<div class="flashcard-hint" style="margin-top:8px;">Source: ${escapeHtml(f.source)}</div></div>
+          </div>`;
+        });
+        out.innerHTML = html + `</div>`;
+      } 
+      // (You can expand the UI handling for quizzes and timelines here following a similar pattern)
+      else {
+        out.innerHTML = `<pre style="white-space: pre-wrap; font-size:0.85rem; background:var(--panel-raised); padding: 16px; border-radius: var(--radius)">${JSON.stringify(data, null, 2)}</pre>`;
+      }
+    } catch (err) {
+      out.innerHTML = `<div class="chat-empty" style="color:var(--rust)">Failed to generate study materials.</div>`;
+    }
+  }
+
+  function renderProjectList() {
+    const list = document.getElementById("project-list");
+    list.innerHTML = "";
+    if (projectsCache.length === 0) {
+      list.innerHTML = `<div class="sidebar-empty">No projects yet.<br>Create one to start pulling sources.</div>`;
+      return;
+    }
+    projectsCache.forEach((p, i) => {
+      const div = document.createElement("div");
+      div.className = `project-item ${currentProject?.id === p.id ? "active" : ""}`;
+      div.style.setProperty("--stripe", STRIPES[i % STRIPES.length]);
+      div.tabIndex = 0;
+      div.innerHTML = `
+        <div class="project-name"></div>
+        <div class="project-meta"></div>
+      `;
+      div.querySelector(".project-name").textContent = p.name;
+      div.querySelector(".project-meta").textContent =
+        p.status === "fetching" ? "Fetching papers…" :
+        p.status === "error" ? "Paper fetch failed" :
+        `${p.papers_count ?? 0} source${p.papers_count === 1 ? "" : "s"}`;
+      div.onclick = () => selectProject(p.id);
+      div.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectProject(p.id); } };
+      list.appendChild(div);
+    });
+  }
+
+  async function selectProject(id) {
+    try {
+      const res = await safeFetch(`${API}/projects/${id}`);
+      currentProject = await res.json();
+    } catch (_) {
+      return;
+    }
+
+    renderProjectHeader();
+
+    if (!currentProject.chats || currentProject.chats.length === 0) {
+      await createNewChat();
+    } else {
+      switchChat(currentProject.chats[0].id);
+    }
+    renderProjectList();
+
+    if (currentProject.status === "fetching") {
+      startPapersPolling(id);
+    } else {
+      stopPapersPolling();
+    }
+  }
+
+  function renderProjectHeader() {
+    const badge = document.getElementById("paper-badge");
+    document.getElementById("project-title").textContent = currentProject.name;
+    document.getElementById("project-subtitle").textContent = currentProject.context || "";
+    document.getElementById("project-context-text").textContent = currentProject.context || "No context set for this project.";
+
+    const statusLabel = document.getElementById("source-status-label");
+    const manageLabel = document.getElementById("manage-sources-label");
+    const count = currentProject.papers_count ?? 0;
+
+    if (currentProject.status === "fetching") {
+      badge.innerHTML = `<span class="typing-dots" style="padding:0;"><span></span><span></span><span></span></span> Fetching papers from OpenAlex`;
+      statusLabel.style.display = "block";
+      statusLabel.textContent = "Building the source library — this can take a minute.";
+      manageLabel.textContent = "Manage sources";
+    } else if (currentProject.status === "error") {
+      badge.textContent = "Paper fetch failed";
+      statusLabel.style.display = "block";
+      statusLabel.textContent = currentProject.fetch_error || "Something went wrong fetching papers.";
+      manageLabel.textContent = "Manage sources";
+    } else {
+      badge.textContent = `${count} source${count === 1 ? "" : "s"}`;
+      statusLabel.style.display = "none";
+      manageLabel.textContent = `Manage sources (${count})`;
+    }
+  }
+
+  function startPapersPolling(id) {
+    stopPapersPolling();
+    pollTimer = setInterval(async () => {
+      let data;
+      try {
+        const res = await fetch(`${API}/projects/${id}`);
+        if (!res.ok) return;
+        data = await res.json();
+      } catch (_) {
+        return; // stay quiet on transient errors while polling
+      }
+
+      const idx = projectsCache.findIndex((p) => p.id === id);
+      if (idx !== -1) projectsCache[idx] = { ...projectsCache[idx], ...data };
+
+      if (data.status && data.status !== "fetching") {
+        stopPapersPolling();
+        if (data.status === "ready") {
+          toast(`Sources ready — ${data.papers_count ?? 0} papers indexed.`, "success");
+        } else if (data.status === "error") {
+          toast(`Paper fetch failed: ${data.fetch_error || "unknown error"}`, "error");
+        }
+      }
+
+      if (currentProject?.id === id) {
+        currentProject = { ...currentProject, ...data };
+        renderProjectHeader();
+      }
+      renderProjectList();
+    }, 2500);
+  }
+
+  function stopPapersPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  // ---------- New Project Modal ----------
+  function showNewProjectModal() {
+    document.getElementById("modal-proj-name").value = "";
+    document.getElementById("modal-proj-context").value = "";
+    document.getElementById("modal-loading").style.display = "none";
+    document.getElementById("modal-actions").style.display = "flex";
+    document.getElementById("modal-overlay").style.display = "flex";
+    document.getElementById("modal-proj-name").focus();
+  }
+
+  function hideNewProjectModal() {
+    document.getElementById("modal-overlay").style.display = "none";
+  }
+
+  async function submitNewProject() {
+    const name = document.getElementById("modal-proj-name").value.trim();
+    const context = document.getElementById("modal-proj-context").value.trim();
+    if (!name || !context) {
+      toast("Give your project a name and a bit of context first.", "error");
+      return;
+    }
+
+    document.getElementById("modal-actions").style.display = "none";
+    document.getElementById("modal-loading").style.display = "block";
+
+    try {
+      const res = await safeFetch(`${API}/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, context }),
+      });
+      const newProj = await res.json();
+      hideNewProjectModal();
+      toast(`"${newProj.name}" created — fetching papers in the background.`, "success");
+      await loadProjects();
+      await selectProject(newProj.id);
+    } catch (_) {
+      document.getElementById("modal-actions").style.display = "flex";
+      document.getElementById("modal-loading").style.display = "none";
+    }
+  }
+
+  // ---------- Document Manager ----------
+  async function openDocManager() {
+    if (!currentProject) { toast("Select a project first.", "error"); return; }
+    document.getElementById("doc-modal-overlay").style.display = "flex";
+    const container = document.getElementById("doc-list-container");
+    container.innerHTML = `<div class="doc-list-loading">Loading sources…</div>`;
+
+    let docs;
+    try {
+      const res = await safeFetch(`${API}/projects/${currentProject.id}/documents`);
+      docs = await res.json();
+    } catch (err) {
+      container.innerHTML = `<div class="doc-list-loading">Couldn't load sources: ${err.message || "unknown error"}. The project you were viewing is unaffected — you can close this and keep working.</div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    if (docs.length === 0) {
+      container.innerHTML = `<div class="doc-list-empty">No sources indexed yet.</div>`;
+      return;
+    }
+
+    docs.forEach((doc) => {
+      const div = document.createElement("div");
+      div.className = "doc-item";
+      const title = document.createElement("div");
+      title.className = "doc-item-title";
+      title.textContent = doc.name;
+      const badge = document.createElement("div");
+      badge.className = "doc-item-badge";
+      badge.textContent = doc.type;
+      const btn = document.createElement("button");
+      btn.className = "btn btn-danger btn-sm";
+      btn.type = "button";
+      btn.textContent = "Remove";
+      btn.onclick = () => confirmDeleteDoc(doc.name, btn);
+      div.append(title, badge, btn);
+      container.appendChild(div);
+    });
+  }
+
+  function confirmDeleteDoc(docName, btn) {
+    if (btn.dataset.confirming === "1") {
+      deleteDoc(docName);
+      return;
+    }
+    btn.dataset.confirming = "1";
+    btn.textContent = "Confirm?";
+    setTimeout(() => {
+      if (btn.isConnected) { btn.dataset.confirming = "0"; btn.textContent = "Remove"; }
+    }, 3000);
+  }
+
+  function closeDocManager() {
+    document.getElementById("doc-modal-overlay").style.display = "none";
+  }
+
+  async function deleteDoc(docName) {
+    try {
+      await safeFetch(`${API}/projects/${currentProject.id}/documents/${encodeURIComponent(docName)}`, {
+        method: "DELETE",
+      });
+      toast(`Removed "${docName}".`, "success");
+    } catch (_) {
+      return;
+    }
+    await openDocManager();
+    await selectProject(currentProject.id);
+  }
+
+  // ---------- PDF Upload ----------
+  const dropzone = document.getElementById("dropzone");
+  const fileInput = document.getElementById("pdf-file");
+
+  fileInput.addEventListener("change", () => {
+    setSelectedFile(fileInput.files[0] || null);
+  });
+  ["dragover", "dragenter"].forEach((evt) =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); })
+  );
+  ["dragleave", "drop"].forEach((evt) =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); })
+  );
+  dropzone.addEventListener("drop", (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      fileInput.files = e.dataTransfer.files;
+      setSelectedFile(file);
+    }
+  });
+
+  function setSelectedFile(file) {
+    selectedFile = file;
+    const label = document.getElementById("selected-file");
+    if (file) {
+      label.style.display = "block";
+      label.textContent = `Selected: ${file.name}`;
+    } else {
+      label.style.display = "none";
+    }
+  }
+
+  async function uploadPDF() {
+    if (!currentProject) { toast("Select a project first.", "error"); return; }
+    if (!selectedFile) { toast("Choose a PDF file first.", "error"); return; }
+
+    const btn = document.getElementById("upload-btn");
+    btn.disabled = true;
+    btn.textContent = "Uploading…";
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      await safeFetch(`${API}/projects/${currentProject.id}/upload-pdf`, { method: "POST", body: formData });
+      toast(`"${selectedFile.name}" indexed.`, "success");
+      fileInput.value = "";
+      setSelectedFile(null);
+      await selectProject(currentProject.id);
+    } catch (_) {
+      // toast already shown
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Upload PDF";
+    }
+  }
+
+  // ---------- Chat Threads ----------
+  async function createNewChat() {
+    if (!currentProject) return;
+    try {
+      const res = await safeFetch(`${API}/projects/${currentProject.id}/chats`, { method: "POST" });
+      const chat = await res.json();
+      currentProject.chats.push(chat);
+      switchChat(chat.id);
+    } catch (_) {}
+  }
+
+  function switchChat(chatId) {
+    currentChatId = chatId;
+    renderChatThreads();
+    const chat = currentProject.chats.find((c) => c.id === chatId);
+    const box = document.getElementById("messages");
+    box.innerHTML = "";
+    if (!chat || chat.messages.length === 0) {
+      box.innerHTML = `<div class="chat-empty"><h3>Nothing here yet</h3>Ask a question about the papers in this project.</div>`;
+      return;
+    }
+    chat.messages.forEach((m) => appendMessage(m.role, m.content));
+  }
+
+  function renderChatThreads() {
+    const container = document.getElementById("chat-threads");
+    container.innerHTML = "";
+    if (!currentProject) return;
+
+    currentProject.chats.forEach((c) => {
+        const item = document.createElement("div");
+        item.className = "thread-item";
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `thread-btn ${c.id === currentChatId ? "active" : ""}`;
+        btn.textContent = c.title || `Chat ${c.id}`;
+        btn.onclick = () => switchChat(c.id);
+
+        const actions = document.createElement("div");
+        actions.className = "thread-actions";
+
+        // Pencil edit button
+        const editBtn = document.createElement("button");
+        editBtn.className = "icon-btn";
+        editBtn.title = "Rename chat";
+        editBtn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        `;
+        editBtn.onclick = (e) => {
+        e.stopPropagation();
+        enableThreadRename(item, c);
+        };
+
+        actions.appendChild(editBtn);
+        item.appendChild(btn);
+        item.appendChild(actions);
+        container.appendChild(item);
+    });
+    }
+  // ---------- Lightweight, safe markdown rendering for assistant replies ----------
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderInline(text) {
+    return text
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+  }
+
+  function renderMarkdown(raw) {
+    const lines = escapeHtml(raw).split("\n");
+    let html = "";
+    let listType = null; // "ul" | "ol" | null
+
+    const closeList = () => {
+      if (listType) { html += `</${listType}>`; listType = null; }
+    };
+
+    lines.forEach((line) => {
+      const bullet = line.match(/^\s*[-*]\s+(.*)/);
+      const numbered = line.match(/^\s*\d+\.\s+(.*)/);
+      const heading = line.match(/^(#{1,4})\s+(.*)/);
+
+      if (bullet) {
+        if (listType !== "ul") { closeList(); html += "<ul>"; listType = "ul"; }
+        html += `<li>${renderInline(bullet[1])}</li>`;
+      } else if (numbered) {
+        if (listType !== "ol") { closeList(); html += "<ol>"; listType = "ol"; }
+        html += `<li>${renderInline(numbered[1])}</li>`;
+      } else if (heading) {
+        closeList();
+        html += `<p class="md-heading">${renderInline(heading[2])}</p>`;
+      } else if (line.trim() === "") {
+        closeList();
+      } else {
+        closeList();
+        html += `<p>${renderInline(line)}</p>`;
+      }
+    });
+    closeList();
+    return html;
+  }
+
+  // ---------- Messaging ----------
+  function appendMessage(role, content) {
+    const box = document.getElementById("messages");
+    const empty = box.querySelector(".chat-empty");
+    if (empty) empty.remove();
+    const row = document.createElement("div");
+    row.className = `msg-row ${role === "user" ? "user" : ""}`;
+    const bubble = document.createElement("div");
+    bubble.className = `msg ${role}`;
+    if (role === "assistant" || role === "error") {
+      bubble.innerHTML = renderMarkdown(content);
+    } else {
+      bubble.textContent = content;
+    }
+    row.appendChild(bubble);
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+    return row;
+  }
+
+  function showTypingIndicator() {
+    const box = document.getElementById("messages");
+    const row = document.createElement("div");
+    row.className = "msg-row";
+    row.id = "typing-row";
+    row.innerHTML = `<div class="msg assistant"><span class="typing-dots"><span></span><span></span><span></span></span></div>`;
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    document.getElementById("typing-row")?.remove();
+  }
+
+  const userInput = document.getElementById("user-input");
+  userInput.addEventListener("input", () => {
+    userInput.style.height = "auto";
+    userInput.style.height = Math.min(userInput.scrollHeight, 120) + "px";
+  });
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function enableThreadRename(itemContainer, chat) {
+  itemContainer.innerHTML = "";
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "thread-edit-input";
+  input.value = chat.title || `Chat ${chat.id}`;
+
+  const saveRename = async () => {
+    const newTitle = input.value.trim();
+    if (newTitle && newTitle !== chat.title) {
+      try {
+        await safeFetch(`${API}/projects/${currentProject.id}/chats/${chat.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: newTitle }),
+        });
+        chat.title = newTitle;
+      } catch (_) {
+        toast("Failed to rename chat.", "error");
+      }
+    }
+    renderChatThreads();
+  };
+
+  input.onblur = saveRename;
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") saveRename();
+    if (e.key === "Escape") renderChatThreads();
+  };
+
+  itemContainer.appendChild(input);
+  input.focus();
+  input.select();
+}
+
+  async function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text) return;
+  if (!currentChatId) { toast("Start a chat thread first.", "error"); return; }
+
+  userInput.value = "";
+  userInput.style.height = "auto";
+  appendMessage("user", text);
+
+  const chat = currentProject.chats.find((c) => c.id === currentChatId);
+  chat.messages.push({ role: "user", content: text });
+
+  const sendBtn = document.getElementById("send-btn");
+  sendBtn.disabled = true;
+
+  // Create empty bubble for streaming assistant tokens into
+  const messageRow = appendMessage("assistant", "");
+  const bubble = messageRow.querySelector(".msg");
+  let fullContent = "";
+
+  try {
+    const response = await fetch(`${API}/projects/${currentProject.id}/chats/${currentChatId}/message-stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
+    });
+
+    if (!response.ok) throw new Error("Stream request failed");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n\n");
+      buffer = lines.pop(); // Keep unparsed tail
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const rawData = line.slice(6).trim();
+          if (rawData === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(rawData);
+            if (parsed.error) {
+              bubble.classList.add("error");
+              fullContent += `\nError: ${parsed.error}`;
+            } else if (parsed.token) {
+              fullContent += parsed.token;
+            }
+            // Real-time markdown rendering as tokens accumulate
+            bubble.innerHTML = renderMarkdown(fullContent);
+            
+            // Auto scroll to bottom
+            const box = document.getElementById("messages");
+            box.scrollTop = box.scrollHeight;
+          } catch (_) {}
+        }
+      }
+    }
+
+    // Save final complete message to local context
+    chat.messages.push({ role: "assistant", content: fullContent });
+
+  } catch (err) {
+    bubble.classList.add("error");
+    bubble.innerHTML = renderMarkdown("Something went wrong streaming the response. Please try again.");
+  } finally {
+    sendBtn.disabled = false;
+    userInput.focus();
+  }
+}
+  // ---------- Init ----------
+  loadProjects();
+</script>
+</body>
+</html>
