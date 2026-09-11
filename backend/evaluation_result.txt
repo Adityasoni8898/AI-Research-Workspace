@@ -1,0 +1,23 @@
+============================================================
+                EVALUATION SUMMARY REPORT                
+============================================================
+Overall Correctness Score: 4.64 / 5.0
+Overall Citation Score:    4.83 / 5.0
+------------------------------------------------------------
+
+--- Breakdown by Question Type ---
+                      correctness_score  citation_score
+question_type                                          
+abstractive                        4.68            4.79
+factual_extraction                 4.12            5.00
+numerical                          5.00            5.00
+unanswerable                       5.00            5.00
+unanswerable_partial               5.00            3.00
+
+--- Breakdown by Difficulty ---
+            correctness_score  citation_score
+difficulty                                   
+easy                     4.50            5.00
+hard                     4.00            4.33
+medium                   4.83            4.92
+============================================================
