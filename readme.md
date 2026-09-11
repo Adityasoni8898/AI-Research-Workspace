@@ -17,6 +17,7 @@ The workspace is split into three main modes:
 *   **Ask (RAG Chat):** Chat with your research. Ask questions and get streamed answers backed by citations from your uploaded PDFs or imported OpenAlex papers. It falls back to general knowledge (and tells you) if the answer isn't in your library.
 *   **Research:** Type in a topic, set your parameters (like "Max Papers" or "Since 2020"), and the app will automatically fetch relevant academic papers from OpenAlex and embed them into your local database. You can also drag-and-drop PDFs directly into your library.
 <img width="2388" height="1486" alt="image" src="https://github.com/user-attachments/assets/fd92cb78-1126-407c-b126-ae614db8a367" />
+
 *   **Evidence Map:** Give it a contested topic (e.g., "Impact of microplastics on marine life") and the AI will analyze your library to generate a matrix of claims, showing supporting evidence, conflicting evidence, and the current scientific consensus.
 <img width="2306" height="1570" alt="image" src="https://github.com/user-attachments/assets/1d6181ae-b73c-47d6-adf9-fa9dc6a729f7" />
 
