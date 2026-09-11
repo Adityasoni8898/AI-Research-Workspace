@@ -8,3 +8,8 @@ langchain-core
 langchain-text-splitters
 requests
 python-dotenv
+langchain-huggingface
+sentence-transformers
+pandas
+tqdm
+pydantic

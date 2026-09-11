@@ -1,7 +1,8 @@
 import os
 import requests
 from pypdf import PdfReader
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.documents import Document
@@ -9,6 +10,10 @@ from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_classic.chains import create_retrieval_chain
+
+from huggingface_hub import login
+
+login(token=os.environ.get("HF_TOKEN"))
 
 class ProjectRAGEngine:
     def __init__(self, project_id: str, storage_base="./storage/projects"):
@@ -23,14 +28,13 @@ class ProjectRAGEngine:
         my_api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
         
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-3.6-flash", 
+            model="gemini-3.1-flash-lite", 
             temperature=0.1,
             google_api_key=my_api_key,
             streaming=True
         )
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="gemini-embedding-2", 
-            google_api_key=my_api_key
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name="BAAI/bge-small-en-v1.5"
         )
 
     def get_vectorstore(self):
