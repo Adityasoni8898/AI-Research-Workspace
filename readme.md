@@ -1,4 +1,4 @@
-# 🧠 AI Research Workspace
+# AI Research Workspace
 
 A lightweight, AI-powered workspace for literature reviews and academic research. 
 
